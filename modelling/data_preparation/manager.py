@@ -24,7 +24,7 @@ logger = logging.getLogger("ecg_analysis")
 
 class MITDBDatasetManager:
     def download_dataset(self):
-        if not self._is_dataset_downloaded():
+        if not self._is_dataset_downloaded:
             logger.info("MIT dataset is not found. Starting the download process...")
 
             wfdb.dl_database(MITDB, MITDB_DATASET_DIR)
@@ -34,7 +34,7 @@ class MITDBDatasetManager:
 
         records, annotations = [], []
 
-        for i in self._get_indices():
+        for i in self._wfdb_indices:
             kwargs = {"record_name": f"{MITDB_DATASET_DIR}/{i}", "sampto": 500000}
 
             record = wfdb.rdsamp(**kwargs)
@@ -45,7 +45,8 @@ class MITDBDatasetManager:
 
         return records, annotations
 
-    def extract_heartbeats_and_waves_from_records(self, records, annotations):
+    @staticmethod
+    def extract_heartbeats_and_waves_from_records(records, annotations):
         heartbeats = []
         heartbeat_annotations = []
 
@@ -127,8 +128,9 @@ class MITDBDatasetManager:
 
         return heartbeats, heartbeat_annotations, p_waves, qrs_complexes, t_waves
 
+    @staticmethod
     def balance_heartbeats_and_waves(
-        self, heartbeats, heartbeat_annotations, p_waves, qrs_complexes, t_waves
+        heartbeats, heartbeat_annotations, p_waves, qrs_complexes, t_waves
     ):
         # Get the counter of the annotations
         counter = Counter(heartbeat_annotations)
@@ -167,9 +169,8 @@ class MITDBDatasetManager:
             balanced_t_waves,
         )
 
-    def scale_wave_features(
-        self, p_wave_features, qrs_complex_features, t_wave_features
-    ):
+    @staticmethod
+    def scale_wave_features(p_wave_features, qrs_complex_features, t_wave_features):
         scaler_p = StandardScaler()
         scaler_qrs = StandardScaler()
         scaler_t = StandardScaler()
@@ -187,8 +188,8 @@ class MITDBDatasetManager:
             scaler_t,
         )
 
+    @staticmethod
     def cache_scalers(
-        self,
         scaler_p,
         scaler_qrs,
         scaler_t,
@@ -202,8 +203,8 @@ class MITDBDatasetManager:
         for name, scaler in scalers.items():
             joblib.dump(scaler, os.path.join(SCALER_MODELS_CACHE_DIR, f"{name}.pkl"))
 
+    @staticmethod
     def cache_wave_features_and_annotations(
-        self,
         p_wave_features,
         qrs_complex_features,
         t_wave_features,
@@ -221,6 +222,9 @@ class MITDBDatasetManager:
                 pickle.dump(feature, f)
 
     def cache_features(self):
+        if self._is_featureset_cached:
+            return
+
         records, annotations = self.get_records_and_annotations()
         logger.info(
             "MIT dataset records and annotations have been successfully gathered."
@@ -292,7 +296,8 @@ class MITDBDatasetManager:
         )
         logger.info("MIT dataset features and annotations were successfully cached.")
 
-    def load_scalers_from_cache(self):
+    @staticmethod
+    def load_scalers_from_cache():
         return (
             joblib.load(
                 os.path.join(os.path.join(SCALER_MODELS_CACHE_DIR, "scaler_p.pkl"))
@@ -305,7 +310,8 @@ class MITDBDatasetManager:
             ),
         )
 
-    def load_features_and_annotations_from_cache(self):
+    @staticmethod
+    def load_features_and_annotations_from_cache():
         with open(os.path.join(MITDB_FEATURES_DIR, "p_wave.pkl"), "rb") as f:
             p_wave_features = pickle.load(f)  # nosec
 
@@ -327,8 +333,14 @@ class MITDBDatasetManager:
             heartbeat_annotations,
         )
 
+    @property
     def _is_dataset_downloaded(self):
         return os.path.isdir(MITDB_DATASET_DIR) and len(os.listdir(MITDB_DATASET_DIR))
 
-    def _get_indices(self):
+    @property
+    def _is_featureset_cached(self):
+        return len(os.listdir(MITDB_FEATURES_DIR)) > 0
+
+    @property
+    def _wfdb_indices(self):
         return wfdb.get_record_list(MITDB)
