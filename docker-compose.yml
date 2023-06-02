@@ -43,6 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-nginx
+    command: ["./wait-for-it.sh", "web:8000", "--", "nginx", "-g", "daemon off;"]
     ports:
       - "80:80"
     depends_on:
