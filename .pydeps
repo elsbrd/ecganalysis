@@ -1,0 +1,24 @@
+[pydeps]
+max_bacon = 2
+no_show = True
+verbose = 0
+pylib = False
+exclude =
+    os
+    re
+    sys
+    collections
+    numpy
+    gensim
+    plotly
+    django
+    sklearn
+    pandas
+    biosppy
+    tqdm
+    celery
+    rest_framework
+    scipy
+    wfdb
+    joblib
+    __future__

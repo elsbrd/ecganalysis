@@ -1,0 +1,13 @@
+debug/
+media/
+staticfiles/
+venv/
+__pycache__/
+.idea/
+
+.env
+
+modelling/data_preparation/cache
+modelling/models_cache
+db.sqlite3
+test.csv

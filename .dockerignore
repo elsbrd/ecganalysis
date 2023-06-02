@@ -1,0 +1,17 @@
+debug/
+media/
+staticfiles/
+venv/
+__pycache__/
+.idea/
+
+
+.env
+db.sqlite3
+
+.git
+.gitignore
+
+*.pyc
+*.pyo
+*.pyd

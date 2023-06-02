@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile-django
+    entrypoint: ["./bin/entrypoint-django.sh"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - static-volume:/home/app/ecganalysis/staticfiles
+      - .env:/home/app/ecganalysis/.env
+      - ./modelling/data_preparation/cache:/home/app/ecganalysis/modelling/data_preparation/cache
+      - ./modelling/models_cache:/home/app/ecganalysis/modelling/models_cache
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile-django
+    entrypoint: [ "./bin/entrypoint-celery.sh" ]
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .env:/home/app/ecganalysis/.env
+      - ./modelling/data_preparation/cache:/home/app/ecganalysis/modelling/data_preparation/cache
+      - ./modelling/models_cache:/home/app/ecganalysis/modelling/models_cache
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    volumes:
+      - static-volume:/home/app/ecganalysis/staticfiles
+
+  redis:
+    image: redis:7-alpine
+
+
+volumes:
+  static-volume:
+  db-data:
