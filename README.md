@@ -60,6 +60,11 @@ python manage.py migrate
 
 Run the development server:
 ```
+python manage.py runserver
+```
+
+The API should now be accessible at `http://127.0.0.1:8000/`.
+
 # ECG Analysis Service Web Application
 
 This section of the README provides visual insights into the ECG Analysis Service application’s interface and functionality.
@@ -135,8 +140,3 @@ This is accompanied by a table detailing the heartbeats, predicted labels, word 
 
 ![image](https://github.com/elsbrd/ecganalysis/assets/56909624/43c7c738-0aea-44a3-afa2-60061dec5271)
 *Table with heartbeats*
-
-python manage.py runserver
-```
-
-The API should now be accessible at `http://127.0.0.1:8000/`.
